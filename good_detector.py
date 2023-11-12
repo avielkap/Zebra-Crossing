@@ -61,6 +61,22 @@ def angle_with_x_axis(point1, point2):
 #                 maxY = i+1
 #         i=i+1
 #     return n[maxX],n[maxX+1],n[maxY-1],n[maxY],n[minX],n[minX+1],n[minY-1],n[minY]
+def find_line(points):
+    arr = []
+    best_arr = []
+    for z in points:
+        for z2 in points:
+            arr = [z, z2]
+            if not z is z2:
+                line_angel = angle_with_x_axis(z, z2)
+                for z3 in points:
+                    if z3 is not z2 and z3 is not z:
+                        if abs(angle_with_x_axis(z2, z3) - line_angel) < 10:
+                            arr.append(z3)
+                if len(arr) > len(best_arr):
+                    best_arr = arr
+                arr = []
+    return best_arr
 def find_contours(img_name, threshold, thr_reset):
     img = cv2.imread(img_name)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -75,7 +91,8 @@ def find_contours(img_name, threshold, thr_reset):
     contours, hier = cv2.findContours(thresh.copy(),
                                       cv2.RETR_TREE,
                                       cv2.CHAIN_APPROX_SIMPLE)
-    points = []
+    lpoints = []
+    rpoints=[]
     for c in contours:
         # if the contour is not sufficiently large, ignore it
         if cv2.contourArea(c) < 500 or cv2.contourArea(c) > 20000:
@@ -86,32 +103,27 @@ def find_contours(img_name, threshold, thr_reset):
         box = cv2.boxPoints(rect)
         # convert all coordinates floating point values to int
         box = np.int0(box)
-        #print(box)
+        print(box)
         # draw a red 'nghien' rectangle
         cv2.drawContours(img, [box], 0, (0, 0, 255), 2)
         # cv2.imwrite('zebra_lane1.jpg', img)
         # cv2.imshow("contours", img)
         x, y, w, h = cv2.boundingRect(c)
-        points.append((x, y))
+        lpoints.append((x, y))
+        rpoint.append((x+w,y))
+
+
     length = len(points)
     if length < 3:
         return None
     print('len=', length)
-    arr = []
-    best_arr=[]
-    for z in points:
-        for z2 in points:
-            arr=[z,z2]
-            if not z is z2:
-                line_angel = angle_with_x_axis(z, z2)
-                for z3 in points:
-                    if z3 is not z2 and z3 is not z:
-                        if abs(angle_with_x_axis(z2, z3) - line_angel) < 10:
-                            arr.append(z3)
-                if len(arr)>len(best_arr):
-                    best_arr=arr
-                arr=[]
-    for point in best_arr:
+    best_left=find_line(lpoints)
+    best_right=find_line(rpoints)
+
+    for point in best_left:
+        print(point)
+        cv2.circle(img, point, radius=5, color=(0, 0, 255), thickness=-1)
+    for point in best_right:
         print(point)
         cv2.circle(img, point, radius=5, color=(0, 0, 255), thickness=-1)
     z=best_arr[0]
