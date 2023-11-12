@@ -124,6 +124,7 @@ def check_lines(best_left, best_right, lpoints, rpoints):
 
 def find_contours(img_name, threshold, thr_reset):
     img = cv2.imread(img_name)
+    img = cv2.resize(img, (1920, 1080))
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray,
                                (15, 15), 6)
@@ -140,7 +141,7 @@ def find_contours(img_name, threshold, thr_reset):
     rpoints = []
     for c in contours:
         # if the contour is not sufficiently large, ignore it
-        if cv2.contourArea(c) < 500 or cv2.contourArea(c) > 20000:
+        if cv2.contourArea(c) < 1000 or cv2.contourArea(c) > 40000:
             continue
 
         # get the min area rect
@@ -181,18 +182,20 @@ def print_lines(img, right_line, left_line, best_left, best_right):
     print(left_line)
     cv2.line(img, right_line[0], right_line[1], (0, 0, 0), 9)
     cv2.line(img, left_line[0], left_line[1], (0, 0, 0), 9)
+    #imS = cv2.resize(img, (960, 540))  # Resize image
     cv2.imshow("contours", img)
     key = cv2.waitKey(5000)
 
 
 first = "img1.jpeg"
 second = 'zebra.jpg'
+No3='zebra2.jpg'
 # cv2.imshow("contours", img)
 # find_contours("zebra.jpg",180,255)
 for i in range(120, 190, 10):
     for j in range(80, 100, 10):
         print("params: ", i, j)
-        my_img = find_contours(second, i, j)
+        my_img = find_contours(No3, i, j)
         if my_img is None:
             continue
         # cv2.imshow("contours", my_img)
