@@ -129,7 +129,7 @@ second='zebra.jpg'
 for i in range(120,190,10):
     for j in range(80,100,10):
         print("params: ",i,j)
-        my_img = find_contours(second, i, j)
+        my_img = find_contours(first, i, j)
         if my_img is None:
             continue
         cv2.imshow("contours", my_img)
