@@ -162,7 +162,7 @@ def find_contours(img_name, threshold, thr_reset):
     best_right = find_line(rpoints)
     right_line = linregress(best_right)
     left_line = linregress(best_left)
-    if is_intersect(left_line, right_line) or check_lines(best_left, best_right, lpoints, rpoints) < 3:
+    if is_intersect(left_line, right_line) or check_lines(best_left, best_right, lpoints, rpoints) < 4:
         return None
     print_lines(img, right_line, left_line, best_left, best_right)
     return (left_line, right_line)
@@ -192,7 +192,7 @@ second = 'zebra.jpg'
 No3='zebra2.jpg'
 # cv2.imshow("contours", img)
 # find_contours("zebra.jpg",180,255)
-for i in range(120, 190, 10):
+for i in range(120, 250, 10):
     for j in range(80, 100, 10):
         print("params: ", i, j)
         my_img = find_contours(No3, i, j)
