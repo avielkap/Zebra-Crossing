@@ -6,17 +6,50 @@ import cv2
 import numpy as np
 import math
 from scipy import stats
+
+
+def is_intersect(line1, line2):
+    # Extract coordinates for Line 1
+    x1, y1 = line1[0]
+    x2, y2 = line1[1]
+
+    # Extract coordinates for Line 2
+    x3, y3 = line2[0]
+    x4, y4 = line2[1]
+
+    # Calculate slopes and y-intercepts
+    m1 = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else float('inf')  # Avoid division by zero
+    b1 = y1 - m1 * x1 if m1 != float('inf') else None
+
+    m2 = (y4 - y3) / (x4 - x3) if (x4 - x3) != 0 else float('inf')  # Avoid division by zero
+    b2 = y3 - m2 * x3 if m2 != float('inf') else None
+
+    # Check if slopes are equal (parallel lines)
+    if m1 == m2:
+        return False
+    else:
+        # Calculate the x-coordinate of the intersection point
+        x_intersect = (b2 - b1) / (m1 - m2)
+
+        # Check if the intersection point lies within the range of the line segments
+        if (x_intersect >= min(x1, x2) and x_intersect <= max(x1, x2)) and \
+                (x_intersect >= min(x3, x4) and x_intersect <= max(x3, x4)):
+            return True
+        else:
+            return False
+
+
 def linregress(points):
-    x=[]
-    y=[]
+    x = []
+    y = []
     for point in points:
         x.append(point[0])
         y.append(point[1])
-    slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
-    p1=[max(x),slope*max(x)+intercept]
-    p2=[min(x),slope*min(x)+intercept]
-    return p1,p2
-print(linregress([[0,0],[1,1]]))
+    slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+    p1 = (max(x), int(slope * max(x) + intercept))
+    p2 = (min(x), int(slope * min(x) + intercept))
+    return p1, p2
+
 
 def angle_with_x_axis(point1, point2):
     if point1[0] == point2[0]:
@@ -62,6 +95,8 @@ def angle_with_x_axis(point1, point2):
 #         i=i+1
 #     return n[maxX],n[maxX+1],n[maxY-1],n[maxY],n[minX],n[minX+1],n[minY-1],n[minY]
 def find_line(points):
+    if len(points) < 3:
+        return None
     arr = []
     best_arr = []
     for z in points:
@@ -77,6 +112,16 @@ def find_line(points):
                     best_arr = arr
                 arr = []
     return best_arr
+
+
+def check_lines(best_left, best_right, lpoints, rpoints):
+    counter = 0
+    for i in range(len(lpoints)):
+        if (lpoints[i] in best_left) and (rpoints[i] in best_right):
+            counter += 1
+    return counter
+
+
 def find_contours(img_name, threshold, thr_reset):
     img = cv2.imread(img_name)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -92,7 +137,7 @@ def find_contours(img_name, threshold, thr_reset):
                                       cv2.RETR_TREE,
                                       cv2.CHAIN_APPROX_SIMPLE)
     lpoints = []
-    rpoints=[]
+    rpoints = []
     for c in contours:
         # if the contour is not sufficiently large, ignore it
         if cv2.contourArea(c) < 500 or cv2.contourArea(c) > 20000:
@@ -101,53 +146,56 @@ def find_contours(img_name, threshold, thr_reset):
         # get the min area rect
         rect = cv2.minAreaRect(c)
         box = cv2.boxPoints(rect)
-        # convert all coordinates floating point values to int
         box = np.int0(box)
-        print(box)
-        # draw a red 'nghien' rectangle
+        # draw a red box
         cv2.drawContours(img, [box], 0, (0, 0, 255), 2)
-        # cv2.imwrite('zebra_lane1.jpg', img)
-        # cv2.imshow("contours", img)
+
+        # find the rect
         x, y, w, h = cv2.boundingRect(c)
         lpoints.append((x, y))
-        rpoint.append((x+w,y))
+        rpoints.append((x + w, y))
+        # lpoints.append(np.min(box, axis=0))
+        # rpoints.append(np.min(box, axis=0))
 
-
-    length = len(points)
-    if length < 3:
+    best_left = find_line(lpoints)
+    best_right = find_line(rpoints)
+    right_line = linregress(best_right)
+    left_line = linregress(best_left)
+    if is_intersect(left_line, right_line) or check_lines(best_left, best_right, lpoints, rpoints) < 3:
         return None
-    print('len=', length)
-    best_left=find_line(lpoints)
-    best_right=find_line(rpoints)
+    print_lines(img, right_line, left_line, best_left, best_right)
+    return (left_line, right_line)
 
+
+def print_lines(img, right_line, left_line, best_left, best_right):
+    print("left line points")
     for point in best_left:
         print(point)
         cv2.circle(img, point, radius=5, color=(0, 0, 255), thickness=-1)
+    print("right line points")
     for point in best_right:
         print(point)
         cv2.circle(img, point, radius=5, color=(0, 0, 255), thickness=-1)
-    z=best_arr[0]
-    z2=best_arr[1]
-    cv2.line(img, (z2[0], z2[1]), (z[0], z[1]), (0, 0, 0), 9)
+    print("lines")
+    print(right_line)
+    print(left_line)
+    cv2.line(img, right_line[0], right_line[1], (0, 0, 0), 9)
+    cv2.line(img, left_line[0], left_line[1], (0, 0, 0), 9)
     cv2.imshow("contours", img)
     key = cv2.waitKey(5000)
-    print("console.log()")
-    return img
 
-first="img1.jpeg"
-second='zebra.jpg'
+
+first = "img1.jpeg"
+second = 'zebra.jpg'
 # cv2.imshow("contours", img)
 # find_contours("zebra.jpg",180,255)
-for i in range(120,190,10):
-    for j in range(80,100,10):
-        print("params: ",i,j)
+for i in range(120, 190, 10):
+    for j in range(80, 100, 10):
+        print("params: ", i, j)
         my_img = find_contours(second, i, j)
         if my_img is None:
             continue
-        cv2.imshow("contours", my_img)
-        key = cv2.waitKey(500)
-
-
-
+        # cv2.imshow("contours", my_img)
+        # key = cv2.waitKey(500)
 
 cv2.destroyAllWindows()
