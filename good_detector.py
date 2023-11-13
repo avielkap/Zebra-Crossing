@@ -8,6 +8,21 @@ import math
 from scipy import stats
 
 
+def is_zebra(line1, line2):
+    # Extract coordinates for Line 1
+    x1, y1 = line1[0]
+    x2, y2 = line1[1]
+
+    # Extract coordinates for Line 2
+    x3, y3 = line2[0]
+    x4, y4 = line2[1]
+
+    m1 = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else float('inf')  # Avoid division by zero
+    m2 = (y4 - y3) / (x4 - x3) if (x4 - x3) != 0 else float('inf')  # Avoid division by zero
+    if m1 < 0 and m2 > 0:
+        return True
+    return False
+
 def is_intersect(line1, line2):
     # Extract coordinates for Line 1
     x1, y1 = line1[0]
@@ -164,11 +179,14 @@ def find_contours(img_name, threshold, thr_reset):
     left_line = linregress(best_left)
     if is_intersect(left_line, right_line) or check_lines(best_left, best_right, lpoints, rpoints) < 4:
         return None
+    if not is_zebra(left_line,right_line):
+        return None
     print_lines(img, right_line, left_line, best_left, best_right)
     return (left_line, right_line)
 
 
 def print_lines(img, right_line, left_line, best_left, best_right):
+    print("end")
     print("left line points")
     for point in best_left:
         print(point)
@@ -178,27 +196,27 @@ def print_lines(img, right_line, left_line, best_left, best_right):
         print(point)
         cv2.circle(img, point, radius=5, color=(0, 0, 255), thickness=-1)
     print("lines")
-    print(right_line)
     print(left_line)
+    print(right_line)
     cv2.line(img, right_line[0], right_line[1], (0, 0, 0), 9)
     cv2.line(img, left_line[0], left_line[1], (0, 0, 0), 9)
-    #imS = cv2.resize(img, (960, 540))  # Resize image
+    # imS = cv2.resize(img, (960, 540))  # Resize image
     cv2.imshow("contours", img)
-    key = cv2.waitKey(5000)
+    key = cv2.waitKey(500)
 
 
 first = "img1.jpeg"
 second = 'zebra.jpg'
-No3='zebra2.jpg'
-# cv2.imshow("contours", img)
-# find_contours("zebra.jpg",180,255)
+No3 = 'zebra2.jpg'
+find_contours("zebra.jpg",180,255)
 for i in range(120, 250, 10):
     for j in range(80, 100, 10):
         print("params: ", i, j)
         my_img = find_contours(No3, i, j)
         if my_img is None:
+            print("FAIL")
             continue
+        print('GOOD')
         # cv2.imshow("contours", my_img)
         # key = cv2.waitKey(500)
-
 cv2.destroyAllWindows()
