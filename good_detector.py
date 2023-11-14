@@ -238,8 +238,8 @@ def find_contours(img_name, threshold, thr_reset):
         x, y, w, h = cv2.boundingRect(c)
         lpoints.append((x, y))
         rpoints.append((x + w, y))
-        # lpoints.append(np.min(box, axis=0))
-        # rpoints.append(np.min(box, axis=0))
+        #lpoints.append(list(np.min(box, axis=0)))
+        #rpoints.append(list(np.max(box, axis=0)))
 
     best_left = find_line(lpoints)
     best_right = find_line(rpoints)
@@ -272,7 +272,7 @@ def print_lines(img, right_line, left_line, best_left, best_right):
     cv2.line(img, left_line[0], left_line[1], (0, 0, 0), 9)
     # imS = cv2.resize(img, (960, 540))  # Resize image
     cv2.imshow("contours", img)
-    key = cv2.waitKey(1000)
+    key = cv2.waitKey(5000)
 
 
 def check_image(img):
