@@ -8,6 +8,18 @@ import math
 from scipy import stats
 
 
+def is_getting_small(line1, line2):
+    x1, y1 = line1[0]
+    x2, y2 = line1[1]
+
+    # Extract coordinates for Line 2
+    x3, y3 = line2[0]
+    x4, y4 = line2[1]
+
+    len1 = math.sqrt((x3 - x1) ** 2 + (y3 - y1) ** 2)
+    len2 = math.sqrt((x4 - x2) ** 2 + (y4 - y2) ** 2)
+
+
 def is_zebra(line1, line2):
     # Extract coordinates for Line 1
     x1, y1 = line1[0]
@@ -17,11 +29,24 @@ def is_zebra(line1, line2):
     x3, y3 = line2[0]
     x4, y4 = line2[1]
 
+    # Calculate slopes and y-intercepts
     m1 = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else float('inf')  # Avoid division by zero
+    b1 = y1 - m1 * x1 if m1 != float('inf') else None
+
     m2 = (y4 - y3) / (x4 - x3) if (x4 - x3) != 0 else float('inf')  # Avoid division by zero
-    if m1 < 0 and m2 > 0:
-        return True
-    return False
+    b2 = y3 - m2 * x3 if m2 != float('inf') else None
+    if m1 == m2:
+        return False
+    else:
+        # Calculate the x-coordinate of the intersection point
+        x_intersect = (b2 - b1) / (m1 - m2)
+        y_intersect = x_intersect*m1+b1
+        # Check if the intersection point lies within the range of the line segments
+        if y_intersect<min(y2,y4):
+            return True
+        else:
+            return False
+
 
 def is_intersect(line1, line2):
     # Extract coordinates for Line 1
@@ -63,6 +88,8 @@ def linregress(points):
     slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
     p1 = (max(x), int(slope * max(x) + intercept))
     p2 = (min(x), int(slope * min(x) + intercept))
+    if p1[1] < p2[1]:
+        return p2, p1
     return p1, p2
 
 
@@ -175,12 +202,14 @@ def find_contours(img_name, threshold, thr_reset):
 
     best_left = find_line(lpoints)
     best_right = find_line(rpoints)
+    if best_right == None or best_left == None:
+        return None
     right_line = linregress(best_right)
     left_line = linregress(best_left)
-    if is_intersect(left_line, right_line) or check_lines(best_left, best_right, lpoints, rpoints) < 4:
+    if is_intersect(left_line, right_line) or check_lines(best_left, best_right, lpoints, rpoints) < 3:
         return None
     if not is_zebra(left_line,right_line):
-        return None
+         return None
     print_lines(img, right_line, left_line, best_left, best_right)
     return (left_line, right_line)
 
@@ -202,17 +231,17 @@ def print_lines(img, right_line, left_line, best_left, best_right):
     cv2.line(img, left_line[0], left_line[1], (0, 0, 0), 9)
     # imS = cv2.resize(img, (960, 540))  # Resize image
     cv2.imshow("contours", img)
-    key = cv2.waitKey(500)
-
+    key = cv2.waitKey(1000)
 
 first = "img1.jpeg"
 second = 'zebra.jpg'
 No3 = 'zebra2.jpg'
-find_contours("zebra.jpg",180,255)
+No4 = 'rightView.jpg'
+find_contours("zebra.jpg", 180, 255)
 for i in range(120, 250, 10):
     for j in range(80, 100, 10):
         print("params: ", i, j)
-        my_img = find_contours(No3, i, j)
+        my_img = find_contours(No4, i, j)
         if my_img is None:
             print("FAIL")
             continue
