@@ -305,5 +305,5 @@ second = 'zebra.jpg'
 No3 = 'zebra2.jpg'
 No4 = 'rightView.jpg'
 find_contours("zebra.jpg", 180, 255)
-check_image(No3)
+check_image(No4)
 cv2.destroyAllWindows()
