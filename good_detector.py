@@ -50,9 +50,7 @@ def good_path(left_line, right_line):
     angle1 = angle_with_x_axis(left_line[0], left_line[1])
     angle2 = angle_with_x_axis(right_line[0], right_line[1])
     assert 0 < angle1, angle2 < 180
-    print(angle1, angle2)
     direction = angle_sum_vectors(angle1, angle2)
-    print(direction)
     good_zone_size = 20
     target = 270
     if target - good_zone_size < direction < target + good_zone_size:
@@ -295,9 +293,9 @@ def check_image(img):
     if counter > 0:
         print("ok")
     elif der < 0:
-        print("left")
+        print("turn right")
     else:
-        print('right')
+        print('turn left')
 
 
 first = "img1.jpeg"
