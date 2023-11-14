@@ -20,6 +20,49 @@ def is_getting_small(line1, line2):
     len2 = math.sqrt((x4 - x2) ** 2 + (y4 - y2) ** 2)
 
 
+def angle_sum_vectors(angle1, angle2):
+    # Convert angles to radians
+    angle1_rad = math.radians(angle1)
+    angle2_rad = math.radians(angle2)
+
+    # Calculate the components of the vectors
+    vector1_x = math.cos(angle1_rad)
+    vector1_y = math.sin(angle1_rad)
+
+    vector2_x = math.cos(angle2_rad)
+    vector2_y = math.sin(angle2_rad)
+
+    # Calculate the sum of the vectors
+    sum_vector_x = vector1_x + vector2_x
+    sum_vector_y = vector1_y + vector2_y
+
+    # Calculate the magnitude of the sum vector
+    magnitude_sum = math.sqrt(sum_vector_x ** 2 + sum_vector_y ** 2)
+
+    # Calculate the angle between the sum vector and the x-axis
+    angle_sum_rad = math.atan2(sum_vector_y, sum_vector_x)
+    angle_sum_deg = math.degrees(angle_sum_rad)
+    angle_sum_deg = (angle_sum_deg + 360) % 360
+    return angle_sum_deg
+
+
+def good_path(left_line, right_line):
+    angle1 = angle_with_x_axis(left_line[0], left_line[1])
+    angle2 = angle_with_x_axis(right_line[0], right_line[1])
+    assert 0 < angle1, angle2 < 180
+    print(angle1, angle2)
+    direction = angle_sum_vectors(angle1, angle2)
+    print(direction)
+    good_zone_size = 20
+    target = 270
+    if target - good_zone_size < direction < target + good_zone_size:
+        return 0
+    if target - good_zone_size > direction:
+        return -1
+    else:
+        return 1
+
+
 def is_zebra(line1, line2):
     # Extract coordinates for Line 1
     x1, y1 = line1[0]
@@ -40,9 +83,9 @@ def is_zebra(line1, line2):
     else:
         # Calculate the x-coordinate of the intersection point
         x_intersect = (b2 - b1) / (m1 - m2)
-        y_intersect = x_intersect*m1+b1
+        y_intersect = x_intersect * m1 + b1
         # Check if the intersection point lies within the range of the line segments
-        if y_intersect<min(y2,y4):
+        if y_intersect < min(y2, y4):
             return True
         else:
             return False
@@ -96,7 +139,7 @@ def linregress(points):
 def angle_with_x_axis(point1, point2):
     if point1[0] == point2[0]:
         # Handle the case where the line is vertical
-        return 0.0
+        return 90
 
     # Calculate the rise and run
     rise = point2[1] - point1[1]
@@ -208,10 +251,10 @@ def find_contours(img_name, threshold, thr_reset):
     left_line = linregress(best_left)
     if is_intersect(left_line, right_line) or check_lines(best_left, best_right, lpoints, rpoints) < 3:
         return None
-    if not is_zebra(left_line,right_line):
-         return None
+    if not is_zebra(left_line, right_line):
+        return None
     print_lines(img, right_line, left_line, best_left, best_right)
-    return (left_line, right_line)
+    return left_line, right_line
 
 
 def print_lines(img, right_line, left_line, best_left, best_right):
@@ -233,19 +276,34 @@ def print_lines(img, right_line, left_line, best_left, best_right):
     cv2.imshow("contours", img)
     key = cv2.waitKey(1000)
 
+
+def check_image(img):
+    counter = 0
+    der = 0
+    for i in range(120, 250, 10):
+        for j in range(80, 100, 10):
+            lines = find_contours(img, i, j)
+            if lines is None:
+                continue
+            left_line, right_line = lines
+            res = good_path(left_line, right_line)
+            if res == 0:
+                counter += 1
+            else:
+                der += res
+                counter -= 1
+    if counter > 0:
+        print("ok")
+    elif der < 0:
+        print("left")
+    else:
+        print('right')
+
+
 first = "img1.jpeg"
 second = 'zebra.jpg'
 No3 = 'zebra2.jpg'
 No4 = 'rightView.jpg'
 find_contours("zebra.jpg", 180, 255)
-for i in range(120, 250, 10):
-    for j in range(80, 100, 10):
-        print("params: ", i, j)
-        my_img = find_contours(No4, i, j)
-        if my_img is None:
-            print("FAIL")
-            continue
-        print('GOOD')
-        # cv2.imshow("contours", my_img)
-        # key = cv2.waitKey(500)
+check_image(No3)
 cv2.destroyAllWindows()
