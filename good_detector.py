@@ -7,7 +7,9 @@ import numpy as np
 import math
 from scipy import stats
 
-
+from playsound import playsound
+import pygame
+import time
 def is_getting_small(line1, line2):
     x1, y1 = line1[0]
     x2, y2 = line1[1]
@@ -272,7 +274,7 @@ def print_lines(img, right_line, left_line, best_left, best_right):
     cv2.line(img, left_line[0], left_line[1], (0, 0, 0), 9)
     # imS = cv2.resize(img, (960, 540))  # Resize image
     cv2.imshow("contours", img)
-    key = cv2.waitKey(5000)
+    key = cv2.waitKey(1000)
 
 
 def check_image(img):
@@ -291,17 +293,24 @@ def check_image(img):
                 der += res
                 counter -= 1
     if counter > 0:
-        print("ok")
+
+        pygame.mixer.music.load('ok.mp3')
+        pygame.mixer.music.play()
+        time.sleep(1)
     elif der < 0:
-        print("turn right")
+        pygame.mixer.music.load('left.mp3')
+        pygame.mixer.music.play()
+        time.sleep(1)
     else:
-        print('turn left')
-
-
+        pygame.mixer.music.load('right.mp3')
+        pygame.mixer.music.play()
+        time.sleep(1)
+def do_tts(text):
+    tts=g
+pygame.mixer.init()
 first = "img1.jpeg"
 second = 'zebra.jpg'
 No3 = 'zebra2.jpg'
 No4 = 'rightView.jpg'
-find_contours("zebra.jpg", 180, 255)
-check_image(No4)
+check_image(first)
 cv2.destroyAllWindows()
