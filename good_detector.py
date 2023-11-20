@@ -7,7 +7,6 @@ import numpy as np
 import math
 from scipy import stats
 
-from playsound import playsound
 import pygame
 import time
 def is_getting_small(line1, line2):
@@ -305,8 +304,7 @@ def check_image(img):
         pygame.mixer.music.load('right.mp3')
         pygame.mixer.music.play()
         time.sleep(1)
-def do_tts(text):
-    tts=g
+
 pygame.mixer.init()
 first = "img1.jpeg"
 second = 'zebra.jpg'
